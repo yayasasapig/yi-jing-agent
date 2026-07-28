@@ -114,7 +114,8 @@ yi-jing-agent/
 │   ├── engineering-mapping.md    # I Ching ↔ Engineering concepts
 │   └── rfc/
 │       ├── rfc-001-ynn-hdc.md       # YNN/HDC future research
-│       └── rfc-002-san-yi-compression.md  # 三易壓縮 framework
+│       ├── rfc-002-san-yi-compression.md  # 三易壓縮 framework
+│       └── rfc-003-recursive-hexagram-compression.md  # 疊卦遞迴編碼
 ├── demos/
 │   └── san_yi_compression_demo.py  # 三易壓縮 PoC (no GPU needed)
 ├── skill/
