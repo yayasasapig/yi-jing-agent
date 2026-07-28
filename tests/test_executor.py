@@ -15,7 +15,9 @@ from datetime import datetime
 from yi_jing_agent.executor import YiJingAgentExecutor, HermesYiJingExecutor
 from yi_jing_agent.agent_state import (
     YiJingAgentState, YaoPosition, SafetyReport, FeasibilityReport, TaskGraph,
+    LifecycleMode,
 )
+from yi_jing_agent.yao_positions import AuthorizationLevel
 
 
 # ════════════════════════════════════════════════════════════════
@@ -597,3 +599,144 @@ class TestHermesYiJingExecutor:
             assert result["result"].get("fallback") is True
         finally:
             asyncio.sleep = _original_sleep
+
+
+# ════════════════════════════════════════════════════════════════
+#  LifecycleMode — Skip/Shortcut Mechanism Tests
+# ════════════════════════════════════════════════════════════════
+
+class TestLifecycleMode:
+    """LifecycleMode skip/shortcut mechanism."""
+
+    @pytest.mark.asyncio
+    async def test_default_full_mode(self):
+        """Default mode is FULL (backward compatible)."""
+        executor = HermesYiJingExecutor()
+        assert executor._lifecycle_mode == LifecycleMode.FULL
+        assert executor.state.lifecycle_mode == LifecycleMode.FULL
+
+    @pytest.mark.asyncio
+    async def test_express_mode_skips_2_3_4(self):
+        """EXPRESS mode skips SECOND, THIRD, FOURTH yaos."""
+        executor = HermesYiJingExecutor(
+            lifecycle_mode=LifecycleMode.EXPRESS,
+        )
+        await executor.execute("Quick task")
+        assert YaoPosition.SECOND_FIELD in executor.state.skipped_yaos
+        assert YaoPosition.THIRD_ALERT in executor.state.skipped_yaos
+        assert YaoPosition.FOURTH_LEAP in executor.state.skipped_yaos
+        # 五爻 and 上爻 are never skipped
+        assert YaoPosition.FIFTH_FLYING not in executor.state.skipped_yaos
+        assert YaoPosition.SIXTH_REGRET not in executor.state.skipped_yaos
+
+    @pytest.mark.asyncio
+    async def test_standard_mode_skips_4(self):
+        """STANDARD mode skips only FOURTH yao."""
+        executor = HermesYiJingExecutor(
+            lifecycle_mode=LifecycleMode.STANDARD,
+        )
+        await executor.execute("Standard task")
+        assert YaoPosition.FOURTH_LEAP in executor.state.skipped_yaos
+        assert YaoPosition.SECOND_FIELD not in executor.state.skipped_yaos
+        assert YaoPosition.THIRD_ALERT not in executor.state.skipped_yaos
+
+    @pytest.mark.asyncio
+    async def test_full_mode_no_skips(self):
+        """FULL mode skips nothing."""
+        executor = HermesYiJingExecutor(
+            lifecycle_mode=LifecycleMode.FULL,
+        )
+        await executor.execute("Full task")
+        assert len(executor.state.skipped_yaos) == 0
+
+    @pytest.mark.asyncio
+    async def test_result_contains_lifecycle_mode(self):
+        executor = HermesYiJingExecutor(
+            lifecycle_mode=LifecycleMode.FULL,
+        )
+        result = await executor.execute("Test lifecycle mode in result")
+        assert "lifecycle_mode" in result
+        assert result["lifecycle_mode"] == "FULL"
+
+    @pytest.mark.asyncio
+    async def test_result_contains_skipped_yaos(self):
+        executor = HermesYiJingExecutor(
+            lifecycle_mode=LifecycleMode.EXPRESS,
+        )
+        result = await executor.execute("Test skipped yaos in result")
+        assert "skipped_yaos" in result
+        assert len(result["skipped_yaos"]) == 3
+
+    @pytest.mark.asyncio
+    async def test_express_advances_to_sixth_yao(self):
+        """EXPRESS mode still advances state machine to sixth yao."""
+        executor = HermesYiJingExecutor(
+            lifecycle_mode=LifecycleMode.EXPRESS,
+        )
+        await executor.execute("Quick task")
+        assert executor.state.current_yao == YaoPosition.SIXTH_REGRET
+
+    @pytest.mark.asyncio
+    async def test_express_writes_ltm(self):
+        """EXPRESS mode still writes to long-term memory."""
+        executor = HermesYiJingExecutor(
+            lifecycle_mode=LifecycleMode.EXPRESS,
+        )
+        await executor.execute("Quick task")
+        assert len(executor.state.long_term_memory) == 1
+
+    @pytest.mark.asyncio
+    async def test_custom_mode_override(self):
+        """Explicit lifecycle_mode overrides auto-detect."""
+        executor = HermesYiJingExecutor(
+            lifecycle_mode=LifecycleMode.STANDARD,
+        )
+        assert executor._lifecycle_mode == LifecycleMode.STANDARD
+        assert executor._auto_detect is False
+
+
+class TestHermesAutoDetect:
+    """HermesYiJingExecutor auto-detection of lifecycle mode."""
+
+    @pytest.mark.asyncio
+    async def test_hermes_auto_detect_hard(self):
+        """Hard complexity → FULL mode."""
+
+        async def hard_llm(prompt: str) -> str:
+            return (
+                '{"constraints": [], "success_criteria": [], '
+                '"forbidden_actions": [], "estimated_complexity": "hard"}'
+            )
+
+        executor = HermesYiJingExecutor(llm_call=hard_llm)
+        await executor.execute("Build a complex system")
+        assert executor._lifecycle_mode == LifecycleMode.FULL
+
+    @pytest.mark.asyncio
+    async def test_hermes_auto_detect_easy_auto(self):
+        """Easy complexity + AUTO auth → EXPRESS mode."""
+
+        async def easy_llm(prompt: str) -> str:
+            return (
+                '{"constraints": [], "success_criteria": [], '
+                '"forbidden_actions": [], "estimated_complexity": "easy"}'
+            )
+
+        executor = HermesYiJingExecutor(llm_call=easy_llm)
+        executor.state.authorization_level = AuthorizationLevel.AUTO
+        await executor.execute("Simple read-only query")
+        assert executor._lifecycle_mode == LifecycleMode.EXPRESS
+
+    @pytest.mark.asyncio
+    async def test_hermes_auto_detect_medium_default(self):
+        """Medium complexity → STANDARD mode."""
+
+        async def medium_llm(prompt: str) -> str:
+            return (
+                '{"constraints": [], "success_criteria": [], '
+                '"forbidden_actions": [], "estimated_complexity": "medium"}'
+            )
+
+        executor = HermesYiJingExecutor(llm_call=medium_llm)
+        await executor.execute("Standard task")
+        assert executor._lifecycle_mode == LifecycleMode.STANDARD

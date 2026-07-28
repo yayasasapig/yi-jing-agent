@@ -22,7 +22,7 @@ from typing import Dict, Any, Optional, Callable, Awaitable
 from .agent_state import (
     YiJingAgentState, YaoPosition, AuthorizationLevel,
     TaskGraph, FeasibilityReport, SafetyReport,
-    HexagramTransition, MemoryEntry,
+    HexagramTransition, MemoryEntry, LifecycleMode,
 )
 from .reflection import ThreeDimensionalReflection, Reflection3DResult
 from .hexagram_table import get_hexagram_name
@@ -59,7 +59,7 @@ class YiJingAgentExecutor(ABC):
     Use :class:`HermesYiJingExecutor` for a ready-to-use default implementation.
     """
 
-    def __init__(self, session_id: str = ""):
+    def __init__(self, session_id: str = "", lifecycle_mode: Optional[LifecycleMode] = None):
         self.state = YiJingAgentState()
         self.state.session_id = (
             session_id
@@ -68,6 +68,9 @@ class YiJingAgentExecutor(ABC):
         self.max_retries = 3
         self.reflection_engine = ThreeDimensionalReflection()
         self._logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+        self._lifecycle_mode = lifecycle_mode or LifecycleMode.FULL
+        self.state.lifecycle_mode = self._lifecycle_mode
+        self._skipped_yaos: set = set()
 
     # ═══════════════════════════════════════════════
     #  Abstract Methods — 子類必須實作
@@ -164,6 +167,23 @@ class YiJingAgentExecutor(ABC):
     #  Non-Abstract Methods — 有默認實作，可選擇性覆寫
     # ═══════════════════════════════════════════════
 
+    def _get_skipped_yaos(self) -> set:
+        """根據生命週期模式返回被跳過嘅爻位集合
+
+        Returns:
+            set[YaoPosition]: 此模式下應跳過嘅爻位
+        """
+        mode_skips = {
+            LifecycleMode.EXPRESS: {
+                YaoPosition.SECOND_FIELD,
+                YaoPosition.THIRD_ALERT,
+                YaoPosition.FOURTH_LEAP,
+            },
+            LifecycleMode.STANDARD: {YaoPosition.FOURTH_LEAP},
+            LifecycleMode.FULL: set(),
+        }
+        return mode_skips[self._lifecycle_mode]
+
     async def execute(self, user_input: str) -> Dict[str, Any]:
         """
         執行一次完整嘅六爻任務生命週期。
@@ -175,7 +195,8 @@ class YiJingAgentExecutor(ABC):
             user_input: 用戶原始輸入。
 
         Returns:
-            dict: 包含 status, result, hexagram_history, execution_log, session_id。
+            dict: 包含 status, result, hexagram_history, execution_log, session_id,
+                  lifecycle_mode, skipped_yaos。
         """
         # ── 初爻：潛龍勿用 ──
         self.state.current_yao = YaoPosition.FIRST_HIDDEN
@@ -187,42 +208,64 @@ class YiJingAgentExecutor(ABC):
             self._logger.warning("初爻失敗：無法解析用戶意圖")
             return self._fail("初爻失敗：無法解析用戶意圖")
 
+        # 計算應跳過嘅爻位（初爻之後，二爻之前）
+        self._skipped_yaos = self._get_skipped_yaos()
+
         # ── 二爻：見龍在田 ──
         self.state.step_forward()
-        self._logger.info("二爻：見龍在田 — 沙盒試探")
-        feasibility = await self._sandbox_prototype(task_graph)
-        self.state.feasibility_report = feasibility
+        if YaoPosition.SECOND_FIELD not in self._skipped_yaos:
+            self._logger.info("二爻：見龍在田 — 沙盒試探")
+            feasibility = await self._sandbox_prototype(task_graph)
+            self.state.feasibility_report = feasibility
+        else:
+            feasibility = self.state.feasibility_report or FeasibilityReport()
+            self.state.record_skip(
+                YaoPosition.SECOND_FIELD,
+                f"LifecycleMode={self._lifecycle_mode.name}",
+            )
 
         # ── 三爻：終日乾乾 ──
         self.state.step_forward()
-        self._logger.info("三爻：終日乾乾 — 安全審查 + 三維反思")
-        safety = await self._reflexion_gate(task_graph, feasibility)
-        self.state.safety_report = safety
+        if YaoPosition.THIRD_ALERT not in self._skipped_yaos:
+            self._logger.info("三爻：終日乾乾 — 安全審查 + 三維反思")
+            safety = await self._reflexion_gate(task_graph, feasibility)
+            self.state.safety_report = safety
 
-        # 三維反思（額外分析層）
-        reflection_result = await self._run_3d_reflection(
-            task_graph.original_intent,
-            feasibility.plan_a_description or "",
-            "Default output format",
-        )
-        if reflection_result and reflection_result.requires_changes:
-            self._logger.info("三維反思觸發計畫修正")
-            feasibility = await self._revise_plan(reflection_result)
-            self.state.feasibility_report = feasibility
+            # 三維反思（額外分析層）
+            reflection_result = await self._run_3d_reflection(
+                task_graph.original_intent,
+                feasibility.plan_a_description or "",
+                "Default output format",
+            )
+            if reflection_result and reflection_result.requires_changes:
+                self._logger.info("三維反思觸發計畫修正")
+                feasibility = await self._revise_plan(reflection_result)
+                self.state.feasibility_report = feasibility
 
-        if not safety.passed and safety.requires_human:
-            transition = self.state.trigger_moving_yao(3)
-            # 三爻動爻 → 要求人類介入
-            self._logger.warning("三爻安全審查失敗，要求人類介入")
-            return self._request_human_intervention(transition, safety)
+            if not safety.passed and safety.requires_human:
+                transition = self.state.trigger_moving_yao(3)
+                # 三爻動爻 → 要求人類介入
+                self._logger.warning("三爻安全審查失敗，要求人類介入")
+                return self._request_human_intervention(transition, safety)
+        else:
+            self.state.record_skip(
+                YaoPosition.THIRD_ALERT,
+                f"LifecycleMode={self._lifecycle_mode.name}",
+            )
 
         # ── 四爻：或躍在淵 ──
         self.state.step_forward()
-        if self.state.authorization_level == AuthorizationLevel.CONFIRM:
-            self._logger.info("四爻：或躍在淵 — 請求授權")
-            authorization = await self._request_authorization()
-            if not authorization:
-                return self._fail("四爻：人類拒絕授權，任務終止")
+        if YaoPosition.FOURTH_LEAP not in self._skipped_yaos:
+            if self.state.authorization_level == AuthorizationLevel.CONFIRM:
+                self._logger.info("四爻：或躍在淵 — 請求授權")
+                authorization = await self._request_authorization()
+                if not authorization:
+                    return self._fail("四爻：人類拒絕授權，任務終止")
+        else:
+            self.state.record_skip(
+                YaoPosition.FOURTH_LEAP,
+                f"LifecycleMode={self._lifecycle_mode.name}",
+            )
 
         # ── 五爻：飛龍在天 ──
         self.state.step_forward()
@@ -256,6 +299,8 @@ class YiJingAgentExecutor(ABC):
             ],
             "execution_log": self.state.execution_log,
             "session_id": self.state.session_id,
+            "lifecycle_mode": self._lifecycle_mode.name,
+            "skipped_yaos": [y.chinese_name for y in self._skipped_yaos],
         }
 
     async def _run_3d_reflection(
@@ -397,10 +442,12 @@ class HermesYiJingExecutor(YiJingAgentExecutor):
         self,
         session_id: str = "",
         llm_call: Optional[LLMCallable] = None,
+        lifecycle_mode: Optional[LifecycleMode] = None,
     ):
-        super().__init__(session_id=session_id)
+        super().__init__(session_id=session_id, lifecycle_mode=lifecycle_mode or LifecycleMode.FULL)
         self._llm_call = llm_call
         self._execution_timeout: float = 30.0  # seconds for timeout handling
+        self._auto_detect = lifecycle_mode is None
         if llm_call is None:
             self._logger.info(
                 "HermesYiJingExecutor: no llm_call provided, "
@@ -434,6 +481,41 @@ class HermesYiJingExecutor(YiJingAgentExecutor):
         except json.JSONDecodeError:
             self._logger.warning("LLM response was not valid JSON")
             return None
+
+    def _auto_detect_mode(self) -> LifecycleMode:
+        """根據授權級別同任務複雜度自動選擇生命週期模式
+
+        Returns:
+            LifecycleMode: 自動檢測後嘅模式
+        """
+        if self.state.authorization_level in (
+            AuthorizationLevel.CONFIRM,
+            AuthorizationLevel.HUMAN_EXEC,
+        ):
+            return LifecycleMode.FULL
+        complexity = (
+            self.state.task_graph.estimated_complexity
+            if self.state.task_graph
+            else "medium"
+        )
+        if complexity == "hard":
+            return LifecycleMode.FULL
+        elif complexity == "easy" and self.state.authorization_level == AuthorizationLevel.AUTO:
+            return LifecycleMode.EXPRESS
+        return LifecycleMode.STANDARD
+
+    def _get_skipped_yaos(self) -> set:
+        """自動檢測模式後，返回跳過嘅爻位集合"""
+        if self._auto_detect:
+            detected = self._auto_detect_mode()
+            self._lifecycle_mode = detected
+            self.state.lifecycle_mode = detected
+            self._auto_detect = False
+            self._logger.info(
+                "HermesYiJingExecutor 自動檢測模式: %s",
+                detected.name,
+            )
+        return super()._get_skipped_yaos()
 
     # ── Abstract Method Implementations ──
 

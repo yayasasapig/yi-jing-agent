@@ -1,9 +1,17 @@
 """䷀ 六爻 Agent 狀態機 — Core Agent State Machine"""
 from datetime import datetime
+from enum import Enum
 from typing import List, Dict, Optional, Any
 from dataclasses import dataclass, field
 
 from .yao_positions import YaoPosition, AuthorizationLevel
+
+
+class LifecycleMode(Enum):
+    """六爻執行模式 — 控制生命週期完整度"""
+    EXPRESS = 0   # 快速：初爻→五爻→上爻（skip 二、三、四爻）
+    STANDARD = 1  # 標準：初爻→二爻→三爻→五爻→上爻（skip 四爻）
+    FULL = 2      # 完整：所有 6 爻
 
 
 @dataclass
@@ -106,6 +114,11 @@ class YiJingAgentState:
         self.session_id: str = ""
         self.execution_log: List[Dict[str, Any]] = []
 
+        # 生命週期模式
+        self.lifecycle_mode: LifecycleMode = LifecycleMode.FULL
+        self.skipped_yaos: List[YaoPosition] = []
+        self.skipped_stages_log: List[str] = []
+
     def step_forward(self) -> "YiJingAgentState":
         """推進至下一爻時位"""
         if self.current_yao.value < 6:
@@ -176,6 +189,18 @@ class YiJingAgentState:
         path_parts.append(f"{symbol} (當前)")
         
         return " → ".join(path_parts)
+
+    def record_skip(self, yao: YaoPosition, reason: str = ""):
+        """記錄被跳過嘅爻位
+
+        Args:
+            yao: 被跳過嘅爻位
+            reason: 跳過原因
+        """
+        self.skipped_yaos.append(yao)
+        msg = f"⏭️ skip {yao.chinese_name}: {reason}"
+        self.skipped_stages_log.append(msg)
+        self._log(msg)
 
     def _log(self, message: str):
         """記錄執行日誌"""

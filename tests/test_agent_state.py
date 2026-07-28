@@ -8,6 +8,7 @@ from yi_jing_agent.agent_state import (
     HexagramTransition,
     Reflection3D,
     MemoryEntry,
+    LifecycleMode,
 )
 from yi_jing_agent.yao_positions import YaoPosition
 
@@ -369,3 +370,26 @@ class TestDataclasses:
         )
         assert me.hexagram_path == "䷀ (初始) → ䷈ (當前)"
         assert me.recommendations == ["add tests"]
+
+
+class TestLifecycleMode:
+    """LifecycleMode enum and state integration."""
+
+    def test_default_mode_full(self):
+        state = YiJingAgentState()
+        assert state.lifecycle_mode == LifecycleMode.FULL
+
+    def test_record_skip_adds_entry(self):
+        state = YiJingAgentState()
+        state.record_skip(YaoPosition.SECOND_FIELD, "test skip")
+        assert YaoPosition.SECOND_FIELD in state.skipped_yaos
+        assert len(state.skipped_yaos) == 1
+
+    def test_record_skip_logs(self):
+        state = YiJingAgentState()
+        state.record_skip(YaoPosition.FOURTH_LEAP, "standard mode skip")
+        assert len(state.skipped_stages_log) == 1
+        assert "⏭️" in state.skipped_stages_log[0]
+        assert "四爻" in state.skipped_stages_log[0]
+        assert len(state.execution_log) >= 1
+        assert "⏭️" in state.execution_log[-1]["message"]
