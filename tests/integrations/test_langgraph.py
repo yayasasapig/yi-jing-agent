@@ -11,6 +11,15 @@ from yi_jing_agent.integrations.langgraph import (
     create_yi_jing_graph,
 )
 
+# Skip all graph-level tests if langgraph is not installed
+try:
+    import langgraph  # noqa: F401
+    _HAS_LANGGRAPH = True
+except ImportError:
+    _HAS_LANGGRAPH = False
+
+_HAS_LANGGRAPH_REASON = "langgraph not installed (pip install yi-jing-agent[langgraph])"
+
 
 class TestYiJingState:
     """YiJingState schema and defaults."""
@@ -109,6 +118,7 @@ class TestYiJingNode:
 
 class TestYiJingGraph:
     """Level 2: Multi-node graph integration."""
+    pytestmark = pytest.mark.skipif(not _HAS_LANGGRAPH, reason=_HAS_LANGGRAPH_REASON)
 
     def test_create_graph_returns_compiled_app(self):
         app = create_yi_jing_graph()
