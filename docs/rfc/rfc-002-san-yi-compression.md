@@ -266,7 +266,7 @@ W (64×64)          A (64×4)          B (4×64)
 |:---------------|:-----------|:------|:-----|
 | 28 GB | **~5.25 GB** (6-bit uniform) | 5.3x | MacBook |
 | 28 GB | **~1.4 GB** (ternary) | 20x | iPhone |
-| 28 GB | **~2.8 GB** (ternary + AWQ) | 10x | Android |
+| 28 GB | **~2.8 GB** (ternary + AWQ) | 10x | MacBook/Android |
 | 28 GB | **~0.7 GB** (ternary + AWQ + pruning) | 40x | Edge device |
 
 ### 5.3 誠實邊界
@@ -304,8 +304,8 @@ W (64×64)          A (64×4)          B (4×64)
 ## 7. 下一步
 
 - [ ] RFC-002 接受 feedback → 定稿
-- [ ] PoC Code：`demo/san_yi_compression.py` — 三易壓縮示範
-- [ ] 整合入 yi-jing-agent repo
+- [x] PoC Code：`demos/san_yi_compression_demo.py` — 三易壓縮示範 ✅ [Run it: `python3 demos/san_yi_compression_demo.py`](demos/san_yi_compression_demo.py)
+- [ ] 整合入 yi-jing-agent repo（PoC 已入 demos/）
 - [ ] 考慮 HuggingFace Community Article
 
 ---

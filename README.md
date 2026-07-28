@@ -109,7 +109,14 @@ yi-jing-agent/
 ├── CONTRIBUTING.md           # How to contribute
 ├── docs/
 │   ├── 六爻AI-Agent架構設計書.md  # Original Chinese design document (37KB)
-│   └── architecture-overview.md  # English architecture summary
+│   ├── architecture-overview.md  # English architecture summary
+│   ├── philosophical-foundations.md # I Ching × Binary × Leibniz
+│   ├── engineering-mapping.md    # I Ching ↔ Engineering concepts
+│   └── rfc/
+│       ├── rfc-001-ynn-hdc.md       # YNN/HDC future research
+│       └── rfc-002-san-yi-compression.md  # 三易壓縮 framework
+├── demos/
+│   └── san_yi_compression_demo.py  # 三易壓縮 PoC (no GPU needed)
 ├── skill/
 │   └── SKILL.md              # Hermes/OpenClaw skill definition
 ├── src/
@@ -137,6 +144,43 @@ yi-jing-agent/
 | [Architecture Overview](docs/architecture-overview.md) | 🇬🇧 English | English summary of the framework |
 | [Skill Definition](skill/SKILL.md) | 🇭🇰 Chinese | Ready-to-use agent skill |
 | [Lifecycle Demo](examples/six-yao-lifecycle-demo.md) | 🇭🇰 Chinese | Real-world walkthrough with摘日 |
+
+---
+
+## 📦 三易壓縮 — 易經驅動嘅 LLM 壓縮框架（RFC-002）
+
+> **「不易、變易、簡易」** — 將易經最核心嘅系統結構翻譯為真實嘅 LLM 壓縮工程算法。
+
+| Level | 易經概念 | 工程技術 | 壓縮效果 |
+|:------|:---------|:---------|:---------|
+| **簡易** | 刪繁就簡，去掉冗餘 | **Pruning** — 砍掉不活躍嘅 Attention Heads | 15-30% volume reduction |
+| **變易** | 保護動爻，壓縮靜爻 | **AWQ** — Detect 1% outlier weights → FP16，99% → Ternary {-1,0,+1} | **~10x** bit reduction |
+| **不易** | 守住根本，萬變不離其宗 | **Core Preservation** — Embedding + bottom layers frozen FP16 | 關鍵層零損耗 |
+
+### Pipeline 流程
+
+```mermaid
+graph LR
+    A[原始 7B FP32<br/>28 GB] --> B[Phase 1: 簡易<br/>Pruning 20%]
+    B --> C[Phase 2: 變易<br/>Ternary + AWQ]
+    C --> D[Phase 3: 不易<br/>Core Frozen]
+    D --> E[壓縮後<br/>~2.8 GB<br/>10x smaller]
+```
+
+### Run the demo (no GPU required)
+
+```bash
+# 從 repo 根目錄
+python3 demos/san_yi_compression_demo.py
+```
+Output: 完整三易壓縮報告 + 動爻可視化 + 7B model projection。
+
+### 誠實邊界
+
+呢個 framework 係一個 **philosophical unification** — 三易概念對應嘅技術（BitNet / AWQ / LoRA）各自已經存在，但未有人用易經系統結構將佢哋統一命名。RFC-002 詳細講明每個 mapping 嘅數學基礎同限制。
+
+🔗 [完整 RFC-002 技術文檔](docs/rfc/rfc-002-san-yi-compression.md)  
+🔗 [PoC Code — 直接 run 得](demos/san_yi_compression_demo.py)
 
 ---
 
