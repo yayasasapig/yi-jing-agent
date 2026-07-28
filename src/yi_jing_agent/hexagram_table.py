@@ -149,13 +149,14 @@ STRATEGIES = {
     "000000": "䷁ 坤為地 — 全面崩潰，人類接管，緊急停機",
 }
 
-# Verify all 64 are present
-_missing = set(HEXAGRAM_NAMES.keys()) - set(STRATEGIES.keys())
-if _missing:
-    print(f"⚠️ Missing strategies for: {_missing}")
-_extra = set(STRATEGIES.keys()) - set(HEXAGRAM_NAMES.keys())
-if _extra:
-    print(f"⚠️ Extra strategies (no hexagram): {_extra}")
+if __name__ == "__main__":
+    # Verify all 64 are present
+    _missing = set(HEXAGRAM_NAMES.keys()) - set(STRATEGIES.keys())
+    if _missing:
+        print(f"⚠️ Missing strategies for: {_missing}")
+    _extra = set(STRATEGIES.keys()) - set(HEXAGRAM_NAMES.keys())
+    if _extra:
+        print(f"⚠️ Extra strategies (no hexagram): {_extra}")
 
 
 def get_hexagram_name(code: str) -> str:
