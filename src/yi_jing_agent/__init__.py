@@ -4,3 +4,4 @@ from .agent_state import YiJingAgentState, TaskGraph, FeasibilityReport, SafetyR
 from .executor import YiJingAgentExecutor, HermesYiJingExecutor, LLMCallable
 from .hexagram_table import HEXAGRAM_NAMES, get_hexagram_name, get_strategy_for_hexagram
 from .reflection import ThreeDimensionalReflection, Reflection3DResult
+from . import sync
