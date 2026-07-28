@@ -1,7 +1,9 @@
 # ䷀ Yi-Jing Agent — I Ching Six Lines AI Agent Lifecycle Framework
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![CI](https://github.com/yayasasapig/yi-jing-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/yayasasapig/yi-jing-agent/actions/workflows/ci.yml)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![PyPI](https://img.shields.io/badge/PyPI-pip%20install%20yi--jing--agent-blue)](https://github.com/yayasasapig/yi-jing-agent)
 
 > **Fusing ancient I Ching wisdom with modern AI agent architecture.**
 > A structured lifecycle framework that prevents goal drift, enables graceful degradation, and brings philosophical depth to AI agent execution.
