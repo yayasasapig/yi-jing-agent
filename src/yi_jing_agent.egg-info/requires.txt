@@ -1,0 +1,4 @@
+
+[dev]
+pycodestyle
+pytest

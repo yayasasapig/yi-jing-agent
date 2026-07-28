@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "yi-jing-agent"
+version = "0.1.0"
+description = "䷀ I Ching Six Lines AI Agent Framework — Fusing ancient I Ching wisdom with modern AI agent architecture"
+readme = "README.md"
+license = "MIT"
+authors = [
+    {name = "yayasasapig"},
+]
+requires-python = ">=3.10"
+keywords = ["i-ching", "yi-jing", "ai-agent", "lifecycle", "fault-tolerance", "六爻", "易經"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/yayasasapig/yi-jing-agent"
+Repository = "https://github.com/yayasasapig/yi-jing-agent"
+Issues = "https://github.com/yayasasapig/yi-jing-agent/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pycodestyle",
+    "pytest",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
