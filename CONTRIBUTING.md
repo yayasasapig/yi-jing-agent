@@ -31,6 +31,11 @@ Share your own 六爻 lifecycle walkthroughs! Add them to `examples/`.
 - VS Code extension
 - Integration with LangChain, AutoGPT, CrewAI
 
+### 6. 🔮 Research & RFCs
+Check out our [RFC-001: YNN/HDC](docs/rfc/rfc-001-ynn-hdc.md) and
+[RFC-002: Bitwise Hexagram Engine](https://github.com/yayasasapig/yi-jing-agent/issues/1)
+— contributions and discussion are welcome on these foundational design proposals!
+
 ## PR Guidelines
 
 1. Fork the repo
