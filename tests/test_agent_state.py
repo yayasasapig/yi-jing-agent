@@ -393,3 +393,73 @@ class TestLifecycleMode:
         assert "四爻" in state.skipped_stages_log[0]
         assert len(state.execution_log) >= 1
         assert "⏭️" in state.execution_log[-1]["message"]
+
+
+class TestBitwiseState:
+    """Tests for bitwise operations on YiJingAgentState."""
+
+    def test_initial_hexagram_int(self):
+        state = YiJingAgentState()
+        assert state.hexagram_int == 0b111111
+
+    def test_hexagram_code_property_compat(self):
+        state = YiJingAgentState()
+        assert state.hexagram_code == "111111"
+        state.hexagram_code = "101010"
+        assert state.hexagram_int == 0b101010
+
+    def test_check_yao_on_state(self):
+        state = YiJingAgentState()
+        state.hexagram_int = 0b101010
+        assert state.check_yao(1) == True
+        assert state.check_yao(2) == False
+
+    def test_get_faulty_yaos_on_state(self):
+        state = YiJingAgentState()
+        state.hexagram_int = 0b101010
+        faulty = state.get_faulty_yaos()
+        assert 2 in faulty
+        assert 4 in faulty
+        assert 6 in faulty
+
+    def test_hamming_to_goal_perfect(self):
+        state = YiJingAgentState()
+        state.hexagram_int = 0b111111
+        assert state.hamming_to_goal() == 0
+
+    def test_hamming_to_goal_drifted(self):
+        state = YiJingAgentState()
+        state.hexagram_int = 0b000000
+        assert state.hamming_to_goal() == 6
+
+    def test_drift_score_perfect(self):
+        state = YiJingAgentState()
+        state.hexagram_int = 0b111111
+        assert state.drift_score() == 0.0
+
+    def test_drift_score_half(self):
+        state = YiJingAgentState()
+        state.hexagram_int = 0b111000
+        assert state.drift_score() == 0.5
+
+    def test_record_error_to_execution(self):
+        state = YiJingAgentState()
+        state.hexagram_int = 0b111111
+        state.record_error("TOOL_EXECUTION_ERROR", "API timeout")
+        assert state.hexagram_int != 0b111111
+        assert len(state.error_history) == 1
+        assert state.error_history[0]["error_type"] == "TOOL_EXECUTION_ERROR"
+
+    def test_record_error_unknown(self):
+        state = YiJingAgentState()
+        state.hexagram_int = 0b111111
+        state.record_error("NOT_A_REAL_ERROR")
+        assert state.hexagram_int == 0b111111  # unchanged
+        assert len(state.error_history) == 0
+
+    def test_trigger_moving_yao_updates_int(self):
+        state = YiJingAgentState()
+        t = state.trigger_moving_yao(3)
+        assert state.hexagram_int == 0b110111
+        assert t.original_code == "111111"
+        assert t.new_code == "110111"

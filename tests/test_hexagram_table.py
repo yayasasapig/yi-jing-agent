@@ -6,6 +6,16 @@ from yi_jing_agent.hexagram_table import (
     STRATEGIES,
     get_hexagram_name,
     get_strategy_for_hexagram,
+    popcount,
+    hamming_distance,
+    drift_score,
+    check_yao,
+    get_faulty_yaos,
+    flip_yao,
+    apply_error_mask,
+    ERROR_MASK,
+    int_to_str,
+    str_to_int,
 )
 
 
@@ -71,7 +81,7 @@ class TestGetHexagramName:
         assert result == "䷀ 未知"
 
     def test_unknown_code_too_short(self):
-        result = get_hexagram_name("11111")
+        result = get_hexagram_name("222222")
         assert result == "䷀ 未知"
 
     def test_all_64_known_codes_return_non_empty(self):
@@ -174,3 +184,111 @@ class TestModuleSideEffect:
         extra = set(STRATEGIES.keys()) - set(HEXAGRAM_NAMES.keys())
         assert not missing
         assert not extra
+
+
+class TestBitwiseEngine:
+    """Tests for bitwise helpers and error taxonomy."""
+
+    def test_popcount_all_zeros(self):
+        assert popcount(0b000000) == 0
+
+    def test_popcount_all_ones(self):
+        assert popcount(0b111111) == 6
+
+    def test_popcount_mixed(self):
+        assert popcount(0b101010) == 3
+
+    def test_hamming_distance_identical(self):
+        assert hamming_distance(0b111111, 0b111111) == 0
+
+    def test_hamming_distance_opposite(self):
+        assert hamming_distance(0b111111, 0b000000) == 6
+
+    def test_hamming_distance_partial(self):
+        assert hamming_distance(0b111111, 0b111000) == 3
+
+    def test_drift_score_perfect(self):
+        assert drift_score(0b111111) == 0.0
+
+    def test_drift_score_complete(self):
+        assert drift_score(0b000000) == 1.0
+
+    def test_drift_score_half(self):
+        assert drift_score(0b111000) == 0.5
+
+    def test_check_yao_healthy(self):
+        assert check_yao(0b111111, 1) == True
+        assert check_yao(0b111111, 6) == True
+
+    def test_check_yao_faulty(self):
+        assert check_yao(0b000000, 1) == False
+
+    def test_check_yao_specific(self):
+        # 0b100000 → only 初爻 (bit5) is set
+        assert check_yao(0b100000, 1) == True
+        assert check_yao(0b100000, 2) == False
+
+    def test_get_faulty_yaos_all_healthy(self):
+        assert get_faulty_yaos(0b111111) == []
+
+    def test_get_faulty_yaos_all_dead(self):
+        assert get_faulty_yaos(0b000000) == [1, 2, 3, 4, 5, 6]
+
+    def test_get_faulty_yaos_partial(self):
+        # 0b101010 → bits 5,3,1 set → 初爻(5)=1, 二爻(4)=0, 三爻(3)=1, 四爻(2)=0, 五爻(1)=1, 上爻(0)=0
+        assert get_faulty_yaos(0b101010) == [2, 4, 6]
+
+    def test_flip_yao_toggles_bit(self):
+        result = flip_yao(0b111111, 1)
+        assert result == 0b011111
+        # Flip back
+        result = flip_yao(result, 1)
+        assert result == 0b111111
+
+    def test_flip_yao_all_positions(self):
+        state = 0b000000
+        for i in range(1, 7):
+            state = flip_yao(state, i)
+        assert state == 0b111111
+
+    def test_flip_yao_invalid_index(self):
+        with pytest.raises(ValueError):
+            flip_yao(0b111111, 0)
+        with pytest.raises(ValueError):
+            flip_yao(0b111111, 7)
+
+    def test_apply_error_mask(self):
+        result = apply_error_mask(0b111111, "TOOL_EXECUTION_ERROR")
+        assert result == 0b110111  # bit 3 flipped
+
+    def test_apply_error_mask_unknown(self):
+        with pytest.raises(ValueError):
+            apply_error_mask(0b111111, "UNKNOWN_ERROR")
+
+    def test_all_error_masks_are_distinct(self):
+        masks = list(ERROR_MASK.values())
+        assert len(set(masks)) == 6  # All 6 unique
+
+    def test_int_to_str_conversion(self):
+        assert int_to_str(0b111111) == "111111"
+        assert int_to_str(0b000000) == "000000"
+
+    def test_str_to_int_conversion(self):
+        assert str_to_int("111111") == 0b111111
+
+    def test_get_hexagram_name_int(self):
+        name = get_hexagram_name(0b111111)
+        assert "乾為天" in name
+
+    def test_get_hexagram_name_int_invalid(self):
+        name = get_hexagram_name(99)  # Out of range
+        assert name == "䷀ 未知"
+
+    def test_get_strategy_int(self):
+        s = get_strategy_for_hexagram(0b111111)
+        assert "Happy Path" in s
+        assert "乾為天" in s
+
+    def test_get_strategy_unknown_int(self):
+        s = get_strategy_for_hexagram(0b111010)
+        assert s != "" and "通用" not in s  # This is ䷅ which has a strategy
