@@ -115,7 +115,8 @@ yi-jing-agent/
 │   └── rfc/
 │       ├── rfc-001-ynn-hdc.md       # YNN/HDC future research
 │       ├── rfc-002-san-yi-compression.md  # 三易壓縮 framework
-│       └── rfc-003-recursive-hexagram-compression.md  # 疊卦遞迴編碼
+│       ├── rfc-003-recursive-hexagram-compression.md  # 疊卦遞迴編碼
+│       └── rfc-004-autoregressive-yijing-generator.md  # 自迴歸易經生成模型
 ├── demos/
 │   └── san_yi_compression_demo.py  # 三易壓縮 PoC (no GPU needed)
 ├── skill/
