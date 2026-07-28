@@ -7,6 +7,12 @@
 
 > **Fusing ancient I Ching wisdom with modern AI agent architecture.**
 > A structured lifecycle framework that prevents goal drift, enables graceful degradation, and brings philosophical depth to AI agent execution.
+>
+> **易經 × 二進制 × AI Agent** — 呢個 framework 嘅核心係一個數學同構（Mathematical Isomorphism）：
+> 陰陽 = 1 bit，八卦 = 3 bits，六十四卦 = **6-bit state machine**（64 states）。
+> 1701 年萊布尼茲發現邵雍嘅六十四卦次序就係 binary 0-63。
+> 2026 年我哋將呢個 insight 寫成 production-ready AI agent code。
+> [📜 睇完整哲學基礎](docs/philosophical-foundations.md)
 
 ---
 
@@ -126,6 +132,7 @@ yi-jing-agent/
 | Resource | Language | Description |
 |:---------|:---------|:------------|
 | [Design Document](docs/六爻AI-Agent架構設計書.md) | 🇭🇰 Chinese (Cantonese) | Full 60KB architectural blueprint |
+| [Philosophical Foundations](docs/philosophical-foundations.md) | 🇭🇰🇬🇧 Bilingual | I Ching × Binary × Leibniz — the mathematical isomorphism |
 | [Engineering Mapping](docs/engineering-mapping.md) | 🇬🇧🇭🇰 Bilingual | I Ching ↔ Modern Engineering concept mapping |
 | [Architecture Overview](docs/architecture-overview.md) | 🇬🇧 English | English summary of the framework |
 | [Skill Definition](skill/SKILL.md) | 🇭🇰 Chinese | Ready-to-use agent skill |
