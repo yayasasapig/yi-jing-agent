@@ -125,7 +125,8 @@ yi-jing-agent/
 
 | Resource | Language | Description |
 |:---------|:---------|:------------|
-| [Design Document](docs/六爻AI-Agent架構設計書.md) | 🇭🇰 Chinese (Cantonese) | Full 37KB architectural blueprint |
+| [Design Document](docs/六爻AI-Agent架構設計書.md) | 🇭🇰 Chinese (Cantonese) | Full 60KB architectural blueprint |
+| [Engineering Mapping](docs/engineering-mapping.md) | 🇬🇧🇭🇰 Bilingual | I Ching ↔ Modern Engineering concept mapping |
 | [Architecture Overview](docs/architecture-overview.md) | 🇬🇧 English | English summary of the framework |
 | [Skill Definition](skill/SKILL.md) | 🇭🇰 Chinese | Ready-to-use agent skill |
 | [Lifecycle Demo](examples/six-yao-lifecycle-demo.md) | 🇭🇰 Chinese | Real-world walkthrough with摘日 |
