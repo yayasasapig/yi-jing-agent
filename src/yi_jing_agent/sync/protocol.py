@@ -2,7 +2,7 @@
 
 定義 Agent 之間交換 6-bit hexagram state 嘅通訊協定：
 - Push: Agent 主動上報自身狀態
-- Pull: Agent 查詢另一個 Agent 嘅狀態  
+- Pull: Agent 查詢另一個 Agent 嘅狀態
 - Broadcast: Agent 廣播狀態變更俾所有訂閱者
 """
 
@@ -21,11 +21,11 @@ if TYPE_CHECKING:
 
 class SyncAction(Enum):
     """同步動作類型"""
-    PUSH = "push"           # Agent 推送自身狀態
-    PULL = "pull"           # Agent 請求他人狀態
-    BROADCAST = "broadcast" # Agent 廣播狀態變更
-    SYNC_REQ = "sync_req"   # 請求全面同步
-    ALERT = "alert"         # 異常警報（某 Agent 進入 critical）
+    PUSH = "push"            # Agent 推送自身狀態
+    PULL = "pull"            # Agent 請求他人狀態
+    BROADCAST = "broadcast"  # Agent 廣播狀態變更
+    SYNC_REQ = "sync_req"    # 請求全面同步
+    ALERT = "alert"          # 異常警報（某 Agent 進入 critical）
 
 
 @dataclass
@@ -208,7 +208,12 @@ class SyncProtocol:
 
     # ── Alert ──
 
-    def alert(self, source_agent: str, severity: str = "critical", message: str = "") -> SyncMessage:
+    def alert(
+        self,
+        source_agent: str,
+        severity: str = "critical",
+        message: str = "",
+    ) -> SyncMessage:
         """發送異常警報（某 Agent 進入 critical 狀態）。
 
         所有收件人 inbox 都會收到 ALERT 訊息。

@@ -150,11 +150,18 @@ class AgentRegistry:
         if not isinstance(state, YiJingAgentState):
             raise TypeError("state must be a YiJingAgentState instance")
 
+        # Extract lifecycle_mode name
+        lcm = state.lifecycle_mode
+        lcm_name = lcm.name if hasattr(lcm, 'name') else str(lcm)
+        # Extract current_yao name
+        cy = state.current_yao
+        cy_name = cy.chinese_name if hasattr(cy, 'chinese_name') else str(cy)
+
         return self.update(
             agent_id=agent_id,
             hexagram_int=state.hexagram_int,
-            lifecycle_mode=state.lifecycle_mode.name if hasattr(state.lifecycle_mode, 'name') else str(state.lifecycle_mode),
-            current_yao=state.current_yao.chinese_name if hasattr(state.current_yao, 'chinese_name') else str(state.current_yao),
+            lifecycle_mode=lcm_name,
+            current_yao=cy_name,
             task_type="generic",
             metadata={
                 "error_history": state.error_history,
@@ -229,8 +236,16 @@ class AgentRegistry:
 
         from ..hexagram_table import get_hexagram_name
 
+        # Determine system status
+        if critical == 0:
+            status_str = "healthy"
+        elif critical >= len(agents):
+            status_str = "critical"
+        else:
+            status_str = "degraded"
+
         return {
-            "status": "healthy" if critical == 0 else "degraded" if critical < len(agents) else "critical",
+            "status": status_str,
             "agent_count": len(agents),
             "healthy_count": healthy,
             "critical_count": critical,

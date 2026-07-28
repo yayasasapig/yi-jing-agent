@@ -128,7 +128,7 @@ def hexagram_router(state: YiJingState) -> str:
     # Degradation / fallback (check BEFORE coordination since strategies like
     # "資源耗盡，等待降級" contain "等待" which also appears in coordination)
     fallback_keywords = ["降級", "回溯", "重構", "暫停", "延遲", "初期卡住", "初生艱難",
-                          "耗盡"]
+                         "耗盡"]
     if any(kw in strategy for kw in fallback_keywords):
         return "fallback"
 
@@ -482,7 +482,11 @@ def create_yi_jing_graph(
         graph.add_edge("feasibility", "safety")
         graph.add_conditional_edges(
             "safety",
-            lambda s: "human_intervention" if (s.get("safety_report") or {}).get("requires_human") else "execute",
+            lambda s: (
+                "human_intervention"
+                if (s.get("safety_report") or {}).get("requires_human")
+                else "execute"
+            ),
             {"execute": "execute", "human_intervention": END},
         )
     else:

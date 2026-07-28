@@ -38,12 +38,12 @@ YAO_NAMES = {
 
 # ── Error Taxonomy: each error type maps to exactly one bit ──
 ERROR_MASK = {
-    "INTENT_AMBIGUOUS":      0b100000,  # 初爻: intent parsing failed
-    "PLANNING_FAILED":       0b010000,  # 二爻: task plan generation failed
-    "TOOL_EXECUTION_ERROR":  0b001000,  # 三爻: tool/API call exception
-    "VALIDATION_FAILED":     0b000100,  # 四爻: output failed schema/logic check
-    "GOAL_DRIFT_DETECTED":   0b000010,  # 五爻: target drift from goal state
-    "MEMORY_ARCHIVAL_FAIL":  0b000001,  # 上爻: memory persistence failed
+    "INTENT_AMBIGUOUS": 0b100000,  # 初爻: intent parsing failed
+    "PLANNING_FAILED": 0b010000,  # 二爻: task plan generation failed
+    "TOOL_EXECUTION_ERROR": 0b001000,  # 三爻: tool/API call exception
+    "VALIDATION_FAILED": 0b000100,  # 四爻: output failed schema/logic check
+    "GOAL_DRIFT_DETECTED": 0b000010,  # 五爻: target drift from goal state
+    "MEMORY_ARCHIVAL_FAIL": 0b000001,  # 上爻: memory persistence failed
 }
 
 # ── Goal state: ䷀ 乾 (all bits 1) ──
@@ -63,7 +63,7 @@ def popcount(x: int) -> int:
 
 def hamming_distance(a: int, b: int) -> int:
     """Hamming distance between two hexagram states.
-    
+
     d_H = 0 → identical
     d_H >= 3 → severe drift, needs human intervention
     """
@@ -72,7 +72,7 @@ def hamming_distance(a: int, b: int) -> int:
 
 def drift_score(current: int, target: int = GOAL_STATE) -> float:
     """Normalized Hamming distance from target.
-    
+
     Returns 0.0 (perfect alignment) to 1.0 (complete drift).
     """
     return hamming_distance(current, target) / 6.0
@@ -80,11 +80,11 @@ def drift_score(current: int, target: int = GOAL_STATE) -> float:
 
 def check_yao(state: int, yao_index: int) -> bool:
     """Check if a specific yao position is healthy (bit = 1).
-    
+
     Args:
         state: 6-bit hexagram integer (0-63).
         yao_index: 1-based (1=初爻, ..., 6=上爻).
-    
+
     Returns:
         True if the bit is 1 (healthy), False if 0 (fault).
     """
@@ -286,7 +286,7 @@ assert len(_STRATEGIES_INT) == 64, f"Expected 64 strategies, got {len(_STRATEGIE
 
 def get_hexagram_name(code: Union[int, str]) -> str:
     """根據 6-bit code 返回卦象名稱。
-    
+
     Accepts both int (0-63) and str ("111111").
     """
     if isinstance(code, str):
@@ -295,7 +295,7 @@ def get_hexagram_name(code: Union[int, str]) -> str:
         except (ValueError, KeyError):
             # Non-binary string: extract yang count from digits
             pass
-    
+
     if isinstance(code, int) and 0 <= code <= 63:
         result = _HEXAGRAM_NAMES_INT.get(code)
         if result:
@@ -319,7 +319,7 @@ def get_hexagram_symbol(code: Union[int, str]) -> str:
 
 def get_strategy_for_hexagram(code: Union[int, str]) -> str:
     """根據卦象返回對應執行策略。
-    
+
     Accepts both int (0-63) and str ("111111").
     Returns format: "䷀ 乾為天 — Happy Path..."
     Fallback 有意義 — 根據卦象特徵推斷策略。
@@ -330,14 +330,14 @@ def get_strategy_for_hexagram(code: Union[int, str]) -> str:
         except (ValueError, KeyError):
             # Non-binary string: keep as str for backward-compat fallback
             pass
-    
+
     # Prefix hexagram name
     name_prefix = get_hexagram_name(code)
-    
+
     # O(1) array lookup (int only)
     if isinstance(code, int) and 0 <= code < 64 and _HEXAGRAM_STRATEGIES[code]:
         return f"{name_prefix} — {_HEXAGRAM_STRATEGIES[code]}"
-    
+
     # Fallback — 根據卦象特徵推斷
     if isinstance(code, str):
         # Backward compat: count '1' chars in non-binary string
@@ -346,7 +346,7 @@ def get_strategy_for_hexagram(code: Union[int, str]) -> str:
         yang_count = popcount(code)
     else:
         yang_count = 0
-    
+
     if yang_count >= 5:
         suffix = "通用 — 多陽爻，資源充足，可進取執行"
     elif yang_count <= 1:
@@ -357,7 +357,7 @@ def get_strategy_for_hexagram(code: Union[int, str]) -> str:
         suffix = "通用 — 坎象出現，注意潛在風險，準備降級"
     else:
         suffix = "通用降級 — 回到初爻重新規劃"
-    
+
     return f"{name_prefix} — {suffix}"
 
 
@@ -368,11 +368,11 @@ def get_strategy_for_hexagram(code: Union[int, str]) -> str:
 
 def flip_yao(state: int, yao_index: int) -> int:
     """XOR flip a specific yao position. Returns new state.
-    
+
     Args:
         state: Current 6-bit hexagram integer.
         yao_index: 1-based (1=初爻, ..., 6=上爻).
-    
+
     Returns:
         New hexagram integer after flip.
     """
@@ -383,11 +383,11 @@ def flip_yao(state: int, yao_index: int) -> int:
 
 def apply_error_mask(state: int, error_type: str) -> int:
     """Apply an error mask to the hexagram state.
-    
+
     Args:
         state: Current 6-bit hexagram integer.
         error_type: Key from ERROR_MASK dict.
-    
+
     Returns:
         New hexagram integer after flipping the error's bit.
     """

@@ -35,4 +35,4 @@ class AuthorizationLevel(Enum):
     AUTO = 0       # Level 0: 完全自動 — 唯讀操作，無副作用
     NOTIFY = 1     # Level 1: 通知人類 — 修改本地檔案，中等風險
     CONFIRM = 2    # Level 2: 必需確認 — 寫入外部系統，高風險
-    HUMAN_EXEC = 3 # Level 3: 人類執行 — API Key/刪除/金錢，極高風險
+    HUMAN_EXEC = 3  # Level 3: 人類執行 — API Key/刪除/金錢，極高風險

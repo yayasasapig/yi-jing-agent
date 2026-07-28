@@ -78,7 +78,7 @@ class MemoryEntry:
 class YiJingAgentState:
     """
     ䷀ 核心 Agent 狀態機 — Bitwise v2
-    
+
     維護六爻生命週期嘅完整狀態，包括：
     - 當前爻位追踪
     - 6-bit 整數卦象狀態碼 (0-63, MSB=初爻)
@@ -93,7 +93,7 @@ class YiJingAgentState:
     def hexagram_code(self) -> str:
         """Backward compat: 6-char binary string (e.g. '111111')."""
         return f"{self._hexagram_int:06b}"
-    
+
     @hexagram_code.setter
     def hexagram_code(self, val: str):
         self._hexagram_int = int(val, 2)
@@ -102,7 +102,7 @@ class YiJingAgentState:
     def hexagram_int(self) -> int:
         """Current 6-bit hexagram state (0-63)."""
         return self._hexagram_int
-    
+
     @hexagram_int.setter
     def hexagram_int(self, val: int):
         if not (0 <= val <= 63):
@@ -161,13 +161,13 @@ class YiJingAgentState:
     def trigger_moving_yao(self, yao_index: int) -> HexagramTransition:
         """
         當某層發生異常，引發動爻，翻轉 bit 計算變卦。
-        
+
         使用位元遮罩 XOR 翻轉（μs-level, zero alloc）：
             S_next = S_current ^ YAO_BIT_MASK[yao_index]
-        
+
         Args:
             yao_index: 1-based 爻位（1=初爻, ..., 6=上爻）
-            
+
         Returns:
             HexagramTransition: 變卦結果
         """
@@ -199,10 +199,10 @@ class YiJingAgentState:
 
     def check_yao(self, yao_index: int) -> bool:
         """Check if a specific yao position is healthy (bit = 1).
-        
+
         Args:
             yao_index: 1-based (1=初爻, ..., 6=上爻).
-        
+
         Returns:
             True if bit = 1 (healthy), False if 0 (fault).
         """
@@ -215,7 +215,7 @@ class YiJingAgentState:
 
     def hamming_to_goal(self) -> int:
         """Hamming distance from current state to ䷀ 乾 (perfect goal).
-        
+
         Returns 0-6:
             0 = perfect alignment
             1-2 = minor drift (local retry)
@@ -229,18 +229,18 @@ class YiJingAgentState:
 
     def record_error(self, error_type: str, details: str = ""):
         """Record an error and apply its bit mask to the hexagram state.
-        
+
         Args:
             error_type: Key from ERROR_MASK (e.g. 'TOOL_EXECUTION_ERROR').
             details: Human-readable error description.
         """
         from .hexagram_table import ERROR_MASK, YAO_BIT_MASK, YAO_NAMES
-        
+
         mask = ERROR_MASK.get(error_type)
         if mask is None:
             self._log(f"⚠️ Unknown error type: {error_type}")
             return
-        
+
         # Find which yao position this error maps to
         for idx, m in YAO_BIT_MASK.items():
             if m == mask:
@@ -248,10 +248,10 @@ class YiJingAgentState:
                 break
         else:
             yao_idx = 0
-        
+
         old_int = self.hexagram_int
         self.hexagram_int ^= mask
-        
+
         self.error_history.append({
             "error_type": error_type,
             "yao_index": yao_idx,
@@ -261,7 +261,7 @@ class YiJingAgentState:
             "old_state": old_int,
             "new_state": self.hexagram_int,
         })
-        
+
         self._log(
             f"⚠️ error {error_type} → {YAO_NAMES.get(yao_idx, '?')} "
             f"({old_int:06b} → {self.hexagram_int:06b})"
@@ -271,19 +271,19 @@ class YiJingAgentState:
         """返回卦象變遷路徑（用於交付報告）"""
         if not self.hexagram_history:
             return f"䷀ (初始) → ䷀ (當前)"
-        
+
         from .hexagram_table import get_hexagram_name
-        
+
         path_parts = ["䷀ (初始)"]
         for t in self.hexagram_history:
             symbol = t.transition_name.split(" ")[0] if " " in t.transition_name else "䷀"
             path_parts.append(f"{symbol} ({t.transition_name})")
-        
+
         # Add current
         current = get_hexagram_name(self.hexagram_int)
         symbol = current.split(" ")[0] if " " in current else "䷀"
         path_parts.append(f"{symbol} (當前)")
-        
+
         return " → ".join(path_parts)
 
     def record_skip(self, yao: YaoPosition, reason: str = ""):

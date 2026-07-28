@@ -6,7 +6,7 @@
 支援多種共識策略：
 - MAJORITY_VOTE: 多數 Agent 嘅 hexagram_int 取 mode
 - WEIGHTED: 按 Agent authority 加權平均
-- PESSIMISTIC: 取最低（最差）hexagram_int  
+- PESSIMISTIC: 取最低（最差）hexagram_int
 - OPTIMISTIC: 取最高（最好）hexagram_int
 - HITL: 無法達成共識時請求人類介入
 """
@@ -170,7 +170,11 @@ class ConsensusEngine:
         from ..hexagram_table import get_hexagram_name
 
         return {
-            "status": "coherent" if len(unique_hex) == 1 else "diverged" if len(unique_hex) > 3 else "slightly_diverged",
+            "status": (
+                "coherent" if len(unique_hex) == 1
+                else "diverged" if len(unique_hex) > 3
+                else "slightly_diverged"
+            ),
             "agent_count": len(agents),
             "unique_hexagram_count": len(unique_hex),
             "max_pairwise_hamming": max_pairwise,
@@ -296,7 +300,8 @@ class ConsensusEngine:
         """極值策略：取最低（悲觀）或最高（樂觀）hexagram_int"""
         from ..hexagram_table import get_hexagram_name
 
-        ext_int = min(a["hexagram_int"] for a in agents) if take_min else max(a["hexagram_int"] for a in agents)
+        hex_ints = [a["hexagram_int"] for a in agents]
+        ext_int = min(hex_ints) if take_min else max(hex_ints)
 
         # 判斷採取極值嘅 Agent 佔比
         ext_count = sum(1 for a in agents if a["hexagram_int"] == ext_int)
@@ -313,7 +318,10 @@ class ConsensusEngine:
         return ConsensusResult(
             consensus_hexagram_int=ext_int,
             consensus_hexagram_name=get_hexagram_name(ext_int),
-            strategy_used=ConsensusStrategy.PESSIMISTIC if take_min else ConsensusStrategy.OPTIMISTIC,
+            strategy_used=(
+                ConsensusStrategy.PESSIMISTIC if take_min
+                else ConsensusStrategy.OPTIMISTIC
+            ),
             confidence=round(confidence, 3),
             participant_count=len(agents),
             cluster_count=len(self.detect_clusters([a["agent_id"] for a in agents])),

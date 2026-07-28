@@ -61,10 +61,7 @@ class YiJingAgentExecutor(ABC):
 
     def __init__(self, session_id: str = "", lifecycle_mode: Optional[LifecycleMode] = None):
         self.state = YiJingAgentState()
-        self.state.session_id = (
-            session_id
-            or f"S-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
-        )
+        self.state.session_id = session_id or f"S-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
         self.max_retries = 3
         self.reflection_engine = ThreeDimensionalReflection()
         self._logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
