@@ -3,7 +3,7 @@ Name: yi-jing-agent
 Version: 0.1.0
 Summary: ䷀ I Ching Six Lines AI Agent Framework — Fusing ancient I Ching wisdom with modern AI agent architecture
 Author: yayasasapig
-License: MIT
+License-Expression: MIT
 Project-URL: Homepage, https://github.com/yayasasapig/yi-jing-agent
 Project-URL: Repository, https://github.com/yayasasapig/yi-jing-agent
 Project-URL: Issues, https://github.com/yayasasapig/yi-jing-agent/issues
@@ -11,7 +11,6 @@ Keywords: i-ching,yi-jing,ai-agent,lifecycle,fault-tolerance,六爻,易經
 Classifier: Development Status :: 3 - Alpha
 Classifier: Intended Audience :: Developers
 Classifier: Intended Audience :: Science/Research
-Classifier: License :: OSI Approved :: MIT License
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11

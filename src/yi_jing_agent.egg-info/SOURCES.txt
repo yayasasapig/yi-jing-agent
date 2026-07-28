@@ -2,6 +2,12 @@ LICENSE
 README.md
 pyproject.toml
 setup.py
+src/yi_jing_agent/__init__.py
+src/yi_jing_agent/agent_state.py
+src/yi_jing_agent/executor.py
+src/yi_jing_agent/hexagram_table.py
+src/yi_jing_agent/reflection.py
+src/yi_jing_agent/yao_positions.py
 src/yi_jing_agent.egg-info/PKG-INFO
 src/yi_jing_agent.egg-info/SOURCES.txt
 src/yi_jing_agent.egg-info/dependency_links.txt
