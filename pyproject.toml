@@ -12,7 +12,7 @@ authors = [
     {name = "yayasasapig"},
 ]
 requires-python = ">=3.10"
-keywords = ["i-ching", "yi-jing", "ai-agent", "lifecycle", "fault-tolerance", "六爻", "易經"]
+keywords = ["i-ching", "yi-jing", "ai-agent", "lifecycle", "fault-tolerance", "六爻", "易經", "agent-framework", "reflection", "resilience"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
