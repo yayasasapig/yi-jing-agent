@@ -36,6 +36,8 @@ dev = [
     "pycodestyle",
     "pytest",
     "pytest-asyncio",
+    "pytest-benchmark",
+    "pytest-cov",
 ]
 
 [tool.pytest.ini_options]
