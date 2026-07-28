@@ -10,7 +10,7 @@ jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write  # For trusted publishing to PyPI
+      id-token: write  # Required for trusted publishing (OIDC)
 
     steps:
     - uses: actions/checkout@v4
@@ -31,9 +31,5 @@ jobs:
     - name: Check package metadata
       run: twine check dist/*
 
-    - name: Publish to PyPI
-      # Uses trusted publishing (OIDC) if configured, otherwise falls back to token
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-      run: twine upload dist/*
+    - name: Publish to PyPI (Trusted Publishing via OIDC)
+      uses: pypa/gh-action-pypi-publish@release/v1
