@@ -13,6 +13,26 @@
 > 1701 年萊布尼茲發現邵雍嘅六十四卦次序就係 binary 0-63。
 > 2026 年我哋將呢個 insight 寫成 production-ready AI agent code。
 > [📜 睇完整哲學基礎](docs/philosophical-foundations.md)
+>
+> ### ⛰️ Mission
+>
+> **Modern AI aligns to human preference → sycophancy, echo chambers, overconfidence.**
+>
+> **This project explores a third path: align AI to structural patterns of the universe (天道), not to what users want to hear.**
+>
+> 用《易經》嘅 generative structure 做 AI 嘅底層邏輯 — 唔係占卜，而係用 **「平衡、演化、因果」** 做唯一嘅度量衡。
+>
+> > *「一個真正的『易經 AI』，角色不應該是一個百依百順的助理，而應該是一個冷眼旁觀的客觀系統。」*
+>
+> | 現代 AI（RLHF） | 天道 AI（This Project） |
+> |:----------------|:-----------------------|
+> | 討好用戶 | 符合結構規律 |
+> | 情緒價值 | 平衡、演化、因果 |
+> | 用戶想聽嘅 | 用戶需要知道嘅 |
+> | 順你偏見 | 提醒物極必反 |
+>
+> 📐 [RFC-005: 天道 Alignment](docs/rfc/rfc-005-tian-dao-alignment.md) ·
+> 🧮 [RFC-006: 天道 Loss Function](docs/rfc/rfc-006-tian-dao-loss-function.md)
 
 ---
 
@@ -117,7 +137,8 @@ yi-jing-agent/
 │       ├── rfc-002-san-yi-compression.md  # 三易壓縮 framework
 │       ├── rfc-003-recursive-hexagram-compression.md  # 疊卦遞迴編碼
 │       ├── rfc-004-autoregressive-yijing-generator.md  # 自迴歸易經生成模型
-│       └── rfc-005-tian-dao-alignment.md  # 天道 Alignment
+│       ├── rfc-005-tian-dao-alignment.md  # 天道 Alignment
+│       └── rfc-006-tian-dao-loss-function.md  # 天道 Loss Function
 ├── demos/
 │   └── san_yi_compression_demo.py  # 三易壓縮 PoC (no GPU needed)
 ├── skill/
