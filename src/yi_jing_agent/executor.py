@@ -266,6 +266,9 @@ class YiJingAgentExecutor(ABC):
     ) -> Reflection3DResult:
         """執行三維反思引擎。
 
+        run_full_reflection() 係 CPU-bound sync operation，
+        用 asyncio.to_thread() offload 以免阻塞 event loop。
+
         Args:
             task_desc: 任務描述。
             plan: 執行計劃。
@@ -274,7 +277,8 @@ class YiJingAgentExecutor(ABC):
         Returns:
             Reflection3DResult: 三維反思結果。
         """
-        return self.reflection_engine.run_full_reflection(
+        return await asyncio.to_thread(
+            self.reflection_engine.run_full_reflection,
             task_description=task_desc,
             plan=plan,
             output_format=output_fmt,
@@ -406,14 +410,15 @@ class HermesYiJingExecutor(YiJingAgentExecutor):
     # ── Helpers ──
 
     async def _call_llm(self, prompt: str) -> Optional[str]:
-        """If LLM callable is available, call it; else log and return None."""
+        """If LLM callable is available, call it; else log and return None.
+
+        LLMCallable 保證係 async callable（回傳 Awaitable[str]），
+        所以直接用 await，唔需要 iscoroutine() check。
+        """
         if self._llm_call is not None:
             self._logger.debug(f"LLM call: {prompt[:120]}...")
             try:
-                raw = self._llm_call(prompt)
-                if asyncio.iscoroutine(raw):
-                    return await raw
-                return str(raw) if raw is not None else None
+                return await self._llm_call(prompt)
             except Exception as e:
                 self._logger.warning(f"LLM call failed: {e}")
                 return None
@@ -523,7 +528,8 @@ class HermesYiJingExecutor(YiJingAgentExecutor):
         safety = SafetyReport(passed=True, issues=[], recommendations=[])
 
         # Run reflection engine for safety signals
-        reflection_result = self.reflection_engine.run_full_reflection(
+        reflection_result = await asyncio.to_thread(
+            self.reflection_engine.run_full_reflection,
             task_description=task.original_intent,
             plan=report.plan_a_description,
             output_format="Default",
