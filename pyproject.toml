@@ -35,7 +35,11 @@ Issues = "https://github.com/yayasasapig/yi-jing-agent/issues"
 dev = [
     "pycodestyle",
     "pytest",
+    "pytest-asyncio",
 ]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
 
 [tool.setuptools.packages.find]
 where = ["src"]

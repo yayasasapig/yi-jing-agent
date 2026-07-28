@@ -19,17 +19,12 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        pip install -e ".[dev]"
     - name: Run tests
       run: |
-        python -m doctest src/*.py 2>&1 || true
-        python -c "
-        from src.hexagram_table import get_hexagram_name, get_strategy_for_hexagram
-        print(f'䷀: {get_hexagram_name(\"111111\")}')
-        print(f'坤: {get_hexagram_name(\"000000\")}')
-        print(f'Strategy: {get_strategy_for_hexagram(\"111011\")}')
-        print('All imports OK ✅')
-        "
+        python -m pytest tests/ -v
     - name: Lint
       run: |
-        pip install pycodestyle
         pycodestyle src/ --max-line-length=100 --ignore=E302,W391
