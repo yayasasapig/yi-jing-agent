@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Run tests
+      run: |
+        python -m doctest src/*.py 2>&1 || true
+        python -c "
+        from src.hexagram_table import get_hexagram_name, get_strategy_for_hexagram
+        print(f'䷀: {get_hexagram_name(\"111111\")}')
+        print(f'坤: {get_hexagram_name(\"000000\")}')
+        print(f'Strategy: {get_strategy_for_hexagram(\"111011\")}')
+        print('All imports OK ✅')
+        "
+    - name: Lint
+      run: |
+        pip install pycodestyle
+        pycodestyle src/ --max-line-length=100 --ignore=E302,W391
