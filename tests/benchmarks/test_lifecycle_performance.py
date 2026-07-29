@@ -9,6 +9,7 @@ Benchmarks measure core operation speed:
 
 Run with: python -m pytest tests/benchmarks/ --benchmark-only -v
 """
+import asyncio
 import pytest
 from datetime import datetime
 
@@ -100,39 +101,39 @@ class TestLifecycleBenchmarks:
 
     def test_full_lifecycle_empty_input(self, benchmark):
         """Full lifecycle with empty input (fast-fail at 初爻)."""
-        async def run():
+        async def _run():
             executor = HermesYiJingExecutor()
             return await executor.execute("")
 
-        benchmark(run)
+        benchmark(lambda: asyncio.run(_run()))
 
     def test_full_lifecycle_happy_path(self, benchmark):
         """Full lifecycle with normal input (all 6 stages)."""
-        async def run():
+        async def _run():
             executor = HermesYiJingExecutor()
             return await executor.execute("Build a test project")
 
-        benchmark(run)
+        benchmark(lambda: asyncio.run(_run()))
 
     def test_full_lifecycle_with_llm(self, benchmark):
         """Full lifecycle with fake LLM callback."""
         async def fake_llm(prompt: str) -> str:
             return '{"output": "done", "status": "completed"}'
 
-        async def run():
+        async def _run():
             executor = HermesYiJingExecutor(llm_call=fake_llm)
             return await executor.execute("Run analysis")
 
-        benchmark(run)
+        benchmark(lambda: asyncio.run(_run()))
 
     def test_express_mode_lifecycle(self, benchmark):
         """Express mode lifecycle (skip 3 stages)."""
-        async def run():
+        async def _run():
             from yi_jing_agent.agent_state import LifecycleMode
             executor = HermesYiJingExecutor(lifecycle_mode=LifecycleMode.EXPRESS)
             return await executor.execute("Quick task")
 
-        benchmark(run)
+        benchmark(lambda: asyncio.run(_run()))
 
 
 class TestReflectionBenchmarks:
